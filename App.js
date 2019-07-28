@@ -1,139 +1,23 @@
 import * as React from 'react';
 import {
-  Button,
   Switch,
   Text,
   View,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
 } from 'react-native';
 
-const btnTypes = {
-  number: {
-    style: 1,
-    onPress: () => {},
-  }
-};
+import CalcBtn from './Button.component';
+import { numberBtn, hexBtn } from './button.values';
+import colors from './button.colors';
 
 const initState = {
   result: 0,
-  allOparations: [],
+  allOperations: [],
   currentNumber: 0,
-  buttons: [
-    {
-      title: '1',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '2',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '3',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '4',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '5',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '6',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '7',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '8',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '9',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: '0',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: 'A',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: 'B',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: 'C',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: 'D',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: 'E',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-    {
-      title: 'F',
-      // disabled: false,
-      type: btnTypes.number,
-    },
-  ],
-  hex: true // HEX, false is for DEC
+  hex: false // HEX, false is for DEC
 };
 
-const colors = {
-  // std colors
-  RED: 'red',
-  BLACK: 'black',
-  GREY: 'grey',
-  // --
-  CONTAINER_MAIN: '#ecf0f1',
-  INPUT_BACKGROUND: '#E6F6FF',
-  BUTTON_BG: '#FBFFF3'
-};
-
-const CalcBtn = ({onPress, styleContainer, disabled, title}) => {
-  const _style = disabled
-    ? {
-      ...styleContainer,
-      backgroundColor: colors.GREY,
-    }
-    : styleContainer;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={_style}
-      activeOpacity={disabled ? 1 : 0.5}
-    >
-      <Text>{title}</Text>
-    </TouchableOpacity>
-  );
-};
 
 export default class App extends React.Component {
   constructor() {
@@ -141,9 +25,6 @@ export default class App extends React.Component {
     this.state = {
       ...initState
     }
-
-    // TODO: handle all Operations
-    // TODO: current number 0 == nothing
   }
 
   switchHandler = (val) => {
@@ -154,39 +35,70 @@ export default class App extends React.Component {
   };
 
   setCurrentNumber = (val) => {
+    const { allOperations } = this.state;
     const { currentNumber: _currNumber } = this.state;
     const currentNumber = _currNumber ? _currNumber : '';
-
+    const inputNumber = `${currentNumber}${val}`;
+    // todo: translate currentNumber to hex or not type: hex ? 16 : 10,
     this.setState({
-      currentNumber: `${currentNumber}${val}`,
-    })
+      currentNumber: inputNumber,
+    });
+    if (parseInt(allOperations[allOperations.length - 1])) {
+      allOperations.pop();
+      allOperations.push(inputNumber);
+    } else {
+      allOperations.push(inputNumber);
+    }
   };
 
   add = () => {
-    const { currentNumber, allOparations, hex } = this.state;
-    allOparations.push({
-      type: hex ? 10 : 16,
-      val: currentNumber
-    });
+    const { allOperations } = this.state;
+    allOperations.push(' + ');
     this.setState({
-      allOparations,
       currentNumber: 0
     })
   };
 
+  deduct = () => {
+    const { allOperations } = this.state;
+    allOperations.push(' - ');
+    this.setState({
+      currentNumber: 0
+    })
+  };
+
+  multiply = () => {
+    const { allOperations } = this.state;
+    allOperations.push(' * ');
+    this.setState({
+      currentNumber: 0
+    })
+  };
+
+  divide = () => {
+    const { allOperations } = this.state;
+    allOperations.push(' / ');
+    this.setState({
+      currentNumber: 0
+    })
+  }
+
   reset = () => {
     this.setState({
       currentNumber: 0,
-      allOparations: [],
+      allOperations: [],
       result: 0
     })
   };
 
-  result = () => {
-    this.add();
+   calc = (fn) => {
+    return new Function('return ' + fn)();
+  };
 
-    const { allOparations } = this.state;
-    const final = allOparations.reduce((acc, val) => parseInt(acc) + parseInt(val));
+  result = () => {
+    const { allOperations } = this.state;
+
+    const final = this.calc(allOperations.join(''));
     this.setState({
       result: final
     });
@@ -195,28 +107,27 @@ export default class App extends React.Component {
   render() {
     const {
       result,
-      allOparations,
+      allOperations,
       currentNumber,
-      buttons,
       hex
     } = this.state;
     const resString = result.toString();
     const currentNumberString = currentNumber.toString();
 
-    const _allOperations = [];
-    allOparations.map( item => {
-      if (item.type === 10) {
-        _allOperations.push(item.val);
-      } else if (item.type === 16) {
-        _allOperations.push(`0x${item.val}`);
-      }
-    });
+    // const _allOperations = [];
+    // allOperations.map( item => {
+    //   if (item.type === 10) {
+    //     _allOperations.push(item.val);
+    //   } else if (item.type === 16) {
+    //     _allOperations.push(`0x${item.val}`);
+    //   }
+    // });
 
-    const allOparationsString = _allOperations.join(' + ');
+    const allOperationsString = allOperations.join('');
 
     return (
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
+        <View>
           <Text style={styles.textStyle}>Result:</Text>
           <TextInput
             style={styles.inputStyle}
@@ -225,7 +136,7 @@ export default class App extends React.Component {
           <Text style={styles.textStyle}>All operations:</Text>
           <TextInput
             style={styles.inputStyle}
-            value={allOparationsString}
+            value={allOperationsString}
           />
           <Text style={styles.textStyle}>Current number:</Text>
           <TextInput
@@ -234,131 +145,82 @@ export default class App extends React.Component {
           />
         </View>
 
-        <View
-          style={styles.buttonsContainer}
-        >
-          <View style={styles.rowButtonContainer}>
+        <View style={styles.buttonsContainer}>
             <CalcBtn
               onPress={this.reset}
               title={'AC'}
               styleContainer={styles.button}
-              // disabled={false}
-            />
-            <Switch
-              value={hex}
-              onValueChange={(val) => this.switchHandler(val)}
-            />
-            <CalcBtn
-              onPress={this.add}
-              title={'+'}
-              styleContainer={{
-                ...styles.button,
-                backgroundColor: '#FFF9C0',
-              }}
             />
             <CalcBtn
               onPress={this.result}
               title={'='}
               styleContainer={{
                 ...styles.button,
-                backgroundColor: '#FFF9C0',
+                backgroundColor: colors.BUTTON_OPERATIONS,
               }}
             />
-          </View>
-          <View style={styles.rowButtonContainer}>
+            <View style={styles.buttonSwitch}>
+            <Switch
+              value={hex}
+              onValueChange={(val) => this.switchHandler(val)}
+              />
+            </View>
             <CalcBtn
-              onPress={() => this.setCurrentNumber('1')}
-              title={'1'}
-              styleContainer={styles.button}
+              onPress={this.add}
+              title={'+'}
+              styleContainer={{
+                ...styles.button,
+                backgroundColor: colors.BUTTON_OPERATIONS,
+              }}
             />
             <CalcBtn
-              onPress={() => this.setCurrentNumber('2')}
-              title={'2'}
-              styleContainer={styles.button}
+              onPress={this.deduct}
+              title={'-'}
+              styleContainer={{
+                ...styles.button,
+                backgroundColor: colors.BUTTON_OPERATIONS,
+              }}
             />
             <CalcBtn
-              onPress={() => this.setCurrentNumber('3')}
-              title={'3'}
-              styleContainer={styles.button}
+              onPress={this.multiply}
+              title={'*'}
+              styleContainer={{
+                ...styles.button,
+                backgroundColor: colors.BUTTON_OPERATIONS,
+              }}
             />
             <CalcBtn
-              onPress={() => this.setCurrentNumber('4')}
-              title={'4'}
-              styleContainer={styles.button}
+              onPress={this.divide}
+              title={'/'}
+              styleContainer={{
+                ...styles.button,
+                backgroundColor: colors.BUTTON_OPERATIONS,
+              }}
             />
-          </View>
-          <View style={styles.rowButtonContainer}>
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('5')}
-              title={'5'}
-              styleContainer={styles.button}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('6')}
-              title={'6'}
-              styleContainer={styles.button}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('7')}
-              title={'7'}
-              styleContainer={styles.button}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('8')}
-              title={'8'}
-              styleContainer={styles.button}
-            />
-          </View>
-          <View style={styles.rowButtonContainer}>
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('9')}
-              title={'9'}
-              styleContainer={styles.button}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('0')}
-              title={'0'}
-              styleContainer={styles.button}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('A')}
-              title={'A'}
-              styleContainer={styles.button}
-              disabled={!hex}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('B')}
-              title={'B'}
-              styleContainer={styles.button}
-              disabled={!hex}
-            />
-          </View>
-          <View style={styles.rowButtonContainer}>
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('C')}
-              title={"C"}
-              styleContainer={styles.button}
-              disabled={!hex}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('D')}
-              title={"D"}
-              styleContainer={styles.button}
-              disabled={!hex}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('E')}
-              title={'E'}
-              styleContainer={styles.button}
-              disabled={!hex}
-            />
-            <CalcBtn
-              onPress={() => this.setCurrentNumber('F')}
-              title={'F'}
-              styleContainer={styles.button}
-              disabled={!hex}
-            />
-          </View>
+            {
+              numberBtn.map(item => {
+                return (
+                  <CalcBtn
+                  key = { item.title }
+                  title = { item.title }
+                  onPress = {() => this.setCurrentNumber(item.title)}
+                  styleContainer = {styles.button}
+                />)
+              })
+            }
+            {
+              hexBtn.map(item => {
+                return (
+                  <CalcBtn
+                    key = { item.title }
+                    title = { item.title }
+                    onPress = {() => this.setCurrentNumber(item.title)}
+                    disabled={!hex}
+                    styleContainer = {styles.button}
+                  />
+                )
+              })
+            }
         </View>
       </View>
     );
@@ -373,9 +235,6 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingTop: 25
   },
-  headerContainer: {
-
-  },
   textStyle: {
     fontSize: 16,
     fontWeight: 'bold',
@@ -386,24 +245,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   buttonsContainer: {
-    // height: 200,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     borderColor: colors.BLACK,
     borderWidth: 1,
   },
-  button: {
-    width: 60,
-    height: 60,
+  buttonSwitch: {
+    width: '50%',
     borderColor: colors.BLACK,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.BUTTON_BG,
   },
-  rowButtonContainer: {
-    flexDirection: 'row',
+  button: {
+    width: '25%',
+    height: 60,
+    borderColor: colors.BLACK,
+    borderWidth: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-around',
-    // height: 100,
-    paddingVertical: 10,
+    backgroundColor: colors.BUTTON_BG,
   }
 });
