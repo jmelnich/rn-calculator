@@ -10,6 +10,7 @@ import {
 import CalcBtn from './Button.component';
 import { numberBtn, hexBtn } from './button.values';
 import colors from './button.colors';
+import { convertToHex } from './utility';
 
 const initState = {
   result: 0,
@@ -35,8 +36,7 @@ export default class App extends React.Component {
   };
 
   setCurrentNumber = (val) => {
-    const { allOperations } = this.state;
-    const { currentNumber: _currNumber } = this.state;
+    const { allOperations, currentNumber: _currNumber } = this.state;
     const currentNumber = _currNumber ? _currNumber : '';
     const inputNumber = `${currentNumber}${val}`;
     // todo: translate currentNumber to hex or not type: hex ? 16 : 10,
@@ -105,12 +105,17 @@ export default class App extends React.Component {
   };
 
   render() {
-    const {
+    let {
       result,
       allOperations,
       currentNumber,
       hex
     } = this.state;
+    if (hex) {
+      allOperations = convertToHex(...allOperations);
+      currentNumber = convertToHex(currentNumber);
+      result = convertToHex(result);
+    }
     const resString = result.toString();
     const currentNumberString = currentNumber.toString();
 
@@ -144,7 +149,6 @@ export default class App extends React.Component {
             value={currentNumberString}
           />
         </View>
-
         <View style={styles.buttonsContainer}>
             <CalcBtn
               onPress={this.reset}
