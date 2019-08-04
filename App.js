@@ -10,7 +10,7 @@ import {
 import CalcBtn from './Button.component';
 import { numberBtn, hexBtn } from './button.values';
 import colors from './button.colors';
-import { convertToHex } from './utility';
+import { convertToHex, convertFromHex } from './utility';
 
 const initState = {
   result: 0,
@@ -36,10 +36,10 @@ export default class App extends React.Component {
   };
 
   setCurrentNumber = (val) => {
-    const { allOperations, currentNumber: _currNumber } = this.state;
-    const currentNumber = _currNumber ? _currNumber : '';
-    const inputNumber = `${currentNumber}${val}`;
-    // todo: translate currentNumber to hex or not type: hex ? 16 : 10,
+    const { allOperations, currentNumber: _currNumber, hex } = this.state;
+    let currentNumber = _currNumber ? _currNumber : '';
+    let inputNumber = `${currentNumber}${val}`;
+    inputNumber = hex ? convertFromHex(inputNumber) : inputNumber;
     this.setState({
       currentNumber: inputNumber,
     });
@@ -81,7 +81,7 @@ export default class App extends React.Component {
     this.setState({
       currentNumber: 0
     })
-  }
+  };
 
   reset = () => {
     this.setState({
@@ -119,15 +119,6 @@ export default class App extends React.Component {
     const resString = result.toString();
     const currentNumberString = currentNumber.toString();
 
-    // const _allOperations = [];
-    // allOperations.map( item => {
-    //   if (item.type === 10) {
-    //     _allOperations.push(item.val);
-    //   } else if (item.type === 16) {
-    //     _allOperations.push(`0x${item.val}`);
-    //   }
-    // });
-
     const allOperationsString = allOperations.join('');
 
     return (
@@ -160,7 +151,7 @@ export default class App extends React.Component {
               title={'='}
               styleContainer={{
                 ...styles.button,
-                backgroundColor: colors.BUTTON_OPERATIONS,
+                backgroundColor: colors.BUTTON_RESULT,
               }}
             />
             <View style={styles.buttonSwitch}>
@@ -220,7 +211,8 @@ export default class App extends React.Component {
                     title = { item.title }
                     onPress = {() => this.setCurrentNumber(item.title)}
                     disabled={!hex}
-                    styleContainer = {styles.button}
+                    styleContainer = {{...styles.button,
+                      backgroundColor: colors.BUTTON_HEX}}
                   />
                 )
               })
